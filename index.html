@@ -1,544 +1,870 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
 
-<title>Chromatic Contrast — Interactive Installation</title>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
-<style>
-  * {
-    box-sizing: border-box;
-  }
-
-  body {
-    margin: 0;
-    min-height: 100vh;
-    background: #eeeeea;
-    color: #111;
-    font-family: Arial, Helvetica, sans-serif;
-  }
-
-  .app {
-    min-height: 100vh;
-    display: flex;
-    padding: 4vw;
-    gap: 3vw;
-    align-items: center;
-  }
-
-  /* -------------------------
-     MAIN ARTWORK
-  -------------------------- */
-
-  .art-section {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .title {
-    margin-bottom: 18px;
-  }
-
-  .title h1 {
-    font-size: clamp(22px, 2vw, 34px);
-    font-weight: 500;
-    letter-spacing: -0.03em;
-    margin: 0 0 7px;
-  }
-
-  .title p {
-    margin: 0;
-    font-size: 13px;
-    color: #666;
-    line-height: 1.5;
-    max-width: 680px;
-  }
-
-  .frame {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 2 / 3;
-    max-height: 82vh;
-    background: white;
-    border: 1px solid #111;
-    overflow: hidden;
-  }
-
-  .image-layer {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-
-    transition:
-      opacity 1s ease,
-      filter 1s ease,
-      transform 1s ease;
-  }
-
-  /* -------------------------
-     IMAGE STATES
-  -------------------------- */
-
-  /* FULL COMBINED IMAGE */
-
-  .frame.mode-combined .combined-image {
-    opacity: 1;
-  }
-
-  .frame.mode-combined .cyan-image,
-  .frame.mode-combined .red-image {
-    opacity: 0;
-  }
+  <title>Chromatic Contrast — Interactive Installation</title>
 
 
-  /* CYAN LENS
+  <style>
 
-     Looking through CYAN reveals
-     the RED image.
-  */
+    /* =========================
+       GLOBAL SETTINGS
+    ========================== */
 
-  .frame.mode-cyan .combined-image {
-    opacity: 0;
-  }
+    * {
+      box-sizing: border-box;
+    }
 
-  .frame.mode-cyan .cyan-image {
-    opacity: 0;
-  }
+    body {
+      margin: 0;
+      min-height: 100vh;
 
-  .frame.mode-cyan .red-image {
-    opacity: 1;
-  }
+      background: #eeeeea;
+      color: #111;
 
-
-  /* RED / MAGENTA LENS
-
-     Looking through RED reveals
-     the CYAN image.
-  */
-
-  .frame.mode-red .combined-image {
-    opacity: 0;
-  }
-
-  .frame.mode-red .red-image {
-    opacity: 0;
-  }
-
-  .frame.mode-red .cyan-image {
-    opacity: 1;
-  }
+      font-family: Arial, Helvetica, sans-serif;
+    }
 
 
-  /* -------------------------
-     STATUS
-  -------------------------- */
-
-  .status {
-    position: absolute;
-    z-index: 10;
-    bottom: 15px;
-    left: 15px;
-
-    background: rgba(255,255,255,0.85);
-    padding: 7px 9px;
-
-    font-size: 9px;
-    letter-spacing: 0.12em;
-    color: #333;
-  }
-
-
-  /* -------------------------
-     CONTROL PANEL
-  -------------------------- */
-
-  .controls {
-    width: min(310px, 28vw);
-    min-width: 230px;
-    border-left: 1px solid #aaa;
-    padding-left: 25px;
-  }
-
-  .controls h2 {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    margin: 0 0 20px;
-  }
-
-  .mode-button {
-    appearance: none;
-    width: 100%;
-    background: transparent;
-    border: 1px solid #999;
-
-    margin-bottom: 10px;
-    padding: 14px;
-
-    text-align: left;
-    cursor: pointer;
-
-    transition:
-      background 0.35s ease,
-      color 0.35s ease,
-      border-color 0.35s ease;
-  }
-
-  .mode-button:hover {
-    border-color: #111;
-  }
-
-  .mode-button.active {
-    background: #111;
-    color: white;
-    border-color: #111;
-  }
-
-  .button-top {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .colour-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .combined-dot {
-    background: linear-gradient(
-      90deg,
-      #00c8e0 0%,
-      #00c8e0 50%,
-      #f02b3c 50%,
-      #f02b3c 100%
-    );
-  }
-
-  .cyan-dot {
-    background: #00c8e0;
-  }
-
-  .red-dot {
-    background: #f02b3c;
-  }
-
-  .mode-name {
-    font-size: 13px;
-    font-weight: 600;
-  }
-
-  .mode-description {
-    display: block;
-    margin-top: 7px;
-    margin-left: 24px;
-    font-size: 11px;
-    line-height: 1.4;
-    opacity: 0.7;
-  }
-
-  .explanation {
-    margin-top: 25px;
-    padding-top: 20px;
-    border-top: 1px solid #aaa;
-  }
-
-  .explanation-label {
-    font-size: 9px;
-    letter-spacing: 0.12em;
-    color: #777;
-    margin-bottom: 8px;
-  }
-
-  #explanationText {
-    font-size: 13px;
-    line-height: 1.55;
-    margin: 0;
-    transition: opacity 0.25s ease;
-  }
-
-
-  /* -------------------------
-     MOBILE
-  -------------------------- */
-
-  @media (max-width: 720px) {
+    /* =========================
+       MAIN PAGE LAYOUT
+    ========================== */
 
     .app {
-      flex-direction: column;
-      padding: 25px 18px;
-      gap: 25px;
-      align-items: stretch;
+      min-height: 100vh;
+
+      display: flex;
+      align-items: flex-start;
+
+      padding: 40px;
+      gap: 40px;
     }
+
+
+    /* =========================
+       LEFT SIDE
+       ARTWORK AREA
+    ========================== */
+
+    .art-section {
+      flex: 1;
+      min-width: 0;
+    }
+
+
+    /* =========================
+       TITLE
+    ========================== */
+
+    .title {
+      margin-bottom: 18px;
+    }
+
+    .title h1 {
+      margin: 0 0 7px;
+
+      font-size: clamp(22px, 2vw, 34px);
+      font-weight: 500;
+
+      letter-spacing: -0.03em;
+    }
+
+    .title p {
+      margin: 0;
+
+      max-width: 680px;
+
+      font-size: 13px;
+      line-height: 1.5;
+
+      color: #666;
+    }
+
+
+    /* =========================
+       MAIN IMAGE FRAME
+
+       The frame uses a 2:3
+       portrait ratio to match
+       the uploaded artwork.
+
+       max-height has been
+       removed so the frame
+       can expand naturally.
+    ========================== */
 
     .frame {
+      position: relative;
+
+      width: 100%;
+
       aspect-ratio: 2 / 3;
-      max-height: none;
+
+      background: white;
+
+      border: 1px solid #111;
+
+      overflow: hidden;
     }
+
+
+    /* =========================
+       IMAGE LAYERS
+    ========================== */
+
+    .image-layer {
+      position: absolute;
+
+      inset: 0;
+
+      width: 100%;
+      height: 100%;
+
+      object-fit: cover;
+
+      transition:
+        opacity 0.8s ease,
+        filter 0.8s ease;
+    }
+
+
+    /* =========================
+       DEFAULT OPACITY
+
+       Hide individual images
+       until their mode is
+       selected.
+    ========================== */
+
+    .cyan-image,
+    .red-image {
+      opacity: 0;
+    }
+
+
+    /* =========================
+       COMBINED MODE
+    ========================== */
+
+    .frame.mode-combined .combined-image {
+      opacity: 1;
+    }
+
+    .frame.mode-combined .cyan-image,
+    .frame.mode-combined .red-image {
+      opacity: 0;
+    }
+
+
+    /* =========================
+       CYAN FILTER MODE
+
+       Cyan lens filters out
+       cyan information and
+       reveals the RED image.
+    ========================== */
+
+    .frame.mode-cyan .combined-image {
+      opacity: 0;
+    }
+
+    .frame.mode-cyan .cyan-image {
+      opacity: 0;
+    }
+
+    .frame.mode-cyan .red-image {
+      opacity: 1;
+    }
+
+
+    /* =========================
+       RED FILTER MODE
+
+       Red lens filters out
+       red information and
+       reveals the CYAN image.
+    ========================== */
+
+    .frame.mode-red .combined-image {
+      opacity: 0;
+    }
+
+    .frame.mode-red .red-image {
+      opacity: 0;
+    }
+
+    .frame.mode-red .cyan-image {
+      opacity: 1;
+    }
+
+
+    /* =========================
+       STATUS LABEL
+    ========================== */
+
+    .status {
+      position: absolute;
+
+      z-index: 10;
+
+      left: 15px;
+      bottom: 15px;
+
+      background: rgba(255, 255, 255, 0.88);
+
+      padding: 8px 10px;
+
+      font-size: 9px;
+      font-weight: bold;
+
+      letter-spacing: 0.1em;
+
+      color: #333;
+    }
+
+
+    /* =========================
+       RIGHT SIDE
+       CONTROL PANEL
+    ========================== */
 
     .controls {
-      width: 100%;
-      min-width: 0;
+      width: 310px;
+      min-width: 230px;
 
-      border-left: none;
-      border-top: 1px solid #aaa;
+      border-left: 1px solid #aaa;
 
-      padding-left: 0;
-      padding-top: 20px;
+      padding-left: 25px;
     }
 
-  }
+    .controls h2 {
+      margin: 0 0 20px;
 
-</style>
+      font-size: 11px;
+      font-weight: 600;
+
+      letter-spacing: 0.12em;
+    }
+
+
+    /* =========================
+       BUTTONS
+    ========================== */
+
+    .mode-button {
+      appearance: none;
+
+      width: 100%;
+
+      background: transparent;
+
+      border: 1px solid #999;
+
+      margin-bottom: 10px;
+      padding: 14px;
+
+      text-align: left;
+
+      cursor: pointer;
+
+      color: #111;
+
+      transition:
+        background 0.35s ease,
+        color 0.35s ease,
+        border-color 0.35s ease;
+    }
+
+    .mode-button:hover {
+      border-color: #111;
+    }
+
+    .mode-button.active {
+      background: #111;
+
+      color: white;
+
+      border-color: #111;
+    }
+
+
+    /* =========================
+       BUTTON CONTENT
+    ========================== */
+
+    .button-top {
+      display: flex;
+
+      align-items: center;
+
+      gap: 10px;
+    }
+
+    .colour-dot {
+      width: 14px;
+      height: 14px;
+
+      border-radius: 50%;
+
+      flex-shrink: 0;
+    }
+
+
+    /* Combined colour dot */
+
+    .combined-dot {
+      background: linear-gradient(
+        90deg,
+        #00c8e0 0%,
+        #00c8e0 50%,
+        #f02b3c 50%,
+        #f02b3c 100%
+      );
+    }
+
+
+    /* Cyan colour dot */
+
+    .cyan-dot {
+      background: #00bcd4;
+    }
+
+
+    /* Red colour dot */
+
+    .red-dot {
+      background: #ef3340;
+    }
+
+
+    .mode-name {
+      font-size: 13px;
+
+      font-weight: 600;
+    }
+
+    .mode-description {
+      display: block;
+
+      margin-top: 7px;
+      margin-left: 24px;
+
+      font-size: 11px;
+
+      line-height: 1.4;
+
+      opacity: 0.7;
+    }
+
+
+    /* =========================
+       EXPLANATION SECTION
+    ========================== */
+
+    .explanation {
+      margin-top: 25px;
+
+      padding-top: 20px;
+
+      border-top: 1px solid #aaa;
+    }
+
+    .explanation-label {
+      margin-bottom: 8px;
+
+      font-size: 9px;
+
+      letter-spacing: 0.12em;
+
+      color: #777;
+    }
+
+    #explanationText {
+      margin: 0;
+
+      font-size: 13px;
+
+      line-height: 1.55;
+
+      transition: opacity 0.25s ease;
+    }
+
+
+    /* =========================
+       MOBILE / SMALL SCREEN
+    ========================== */
+
+    @media (max-width: 850px) {
+
+      .app {
+        flex-direction: column;
+
+        padding: 25px 18px;
+
+        gap: 30px;
+      }
+
+
+      .art-section {
+        width: 100%;
+      }
+
+
+      .frame {
+        width: 100%;
+
+        aspect-ratio: 2 / 3;
+      }
+
+
+      .controls {
+        width: 100%;
+
+        min-width: 0;
+
+        border-left: none;
+        border-top: 1px solid #aaa;
+
+        padding-left: 0;
+        padding-top: 20px;
+      }
+
+    }
+
+  </style>
+
 </head>
+
 
 <body>
 
-<div class="app">
 
-  <main class="art-section">
+  <!-- =========================
+       MAIN APPLICATION
+  ========================== -->
 
-    <div class="title">
-      <h1>CHROMATIC CONTRAST</h1>
-
-      <p>
-        An interactive simulation exploring how coloured filters alter
-        perception and reveal hidden visual information.
-      </p>
-    </div>
+  <div class="app">
 
 
     <!-- =========================
-         ARTWORK FRAME
+         ARTWORK SECTION
     ========================== -->
 
-    <div class="frame mode-combined" id="artFrame">
-
-      <!--
-        COMBINED IMAGE
-        Shows both Eiffel Tower and rocket
-      -->
-
-      <img
-        src="images/combined.png"
-        class="image-layer combined-image"
-        id="combinedImage"
-        alt="Combined red Eiffel Tower and cyan rocket"
-      >
+    <main class="art-section">
 
 
-      <!--
-        CYAN IMAGE
-        Rocket only
-      -->
+      <!-- TITLE -->
 
-      <img
-        src="images/cyan.png"
-        class="image-layer cyan-image"
-        id="cyanImage"
-        alt="Cyan rocket"
-      >
+      <div class="title">
 
+        <h1>CHROMATIC CONTRAST</h1>
 
-      <!--
-        RED IMAGE
-        Eiffel Tower only
-      -->
+        <p>
+          An interactive simulation exploring how coloured filters
+          alter perception and reveal hidden visual information.
+        </p>
 
-      <img
-        src="images/red.png"
-        class="image-layer red-image"
-        id="redImage"
-        alt="Red Eiffel Tower"
-      >
-
-
-      <div class="status" id="status">
-        COMBINED IMAGE
       </div>
 
-    </div>
 
-  </main>
+      <!-- =========================
+           IMAGE FRAME
+      ========================== -->
+
+      <div
+        class="frame mode-combined"
+        id="artFrame"
+      >
+
+
+        <!--
+          COMBINED IMAGE
+
+          Shows the Eiffel Tower
+          and rocket together.
+        -->
+
+        <img
+          src="combined.png"
+          class="image-layer combined-image"
+          id="combinedImage"
+          alt="Combined red Eiffel Tower and cyan rocket"
+        >
+
+
+        <!--
+          CYAN IMAGE
+
+          Rocket image only.
+
+          This appears when the
+          RED FILTER is selected.
+        -->
+
+        <img
+          src="cyan.png"
+          class="image-layer cyan-image"
+          id="cyanImage"
+          alt="Cyan rocket"
+        >
+
+
+        <!--
+          RED IMAGE
+
+          Eiffel Tower only.
+
+          This appears when the
+          CYAN FILTER is selected.
+        -->
+
+        <img
+          src="red.png"
+          class="image-layer red-image"
+          id="redImage"
+          alt="Red Eiffel Tower"
+        >
+
+
+        <!-- STATUS LABEL -->
+
+        <div
+          class="status"
+          id="status"
+        >
+          COMBINED IMAGE
+        </div>
+
+
+      </div>
+
+    </main>
+
+
+    <!-- =========================
+         CONTROL PANEL
+    ========================== -->
+
+    <aside class="controls">
+
+
+      <h2>VIEWING FILTER</h2>
+
+
+      <!-- =========================
+           COMBINED BUTTON
+      ========================== -->
+
+      <button
+        class="mode-button active"
+        data-mode="combined"
+      >
+
+        <div class="button-top">
+
+          <span
+            class="colour-dot combined-dot"
+          ></span>
+
+          <span class="mode-name">
+            COMBINED
+          </span>
+
+        </div>
+
+
+        <span class="mode-description">
+
+          View both visual layers
+          simultaneously.
+
+        </span>
+
+      </button>
+
+
+      <!-- =========================
+           CYAN FILTER BUTTON
+      ========================== -->
+
+      <button
+        class="mode-button"
+        data-mode="cyan"
+      >
+
+        <div class="button-top">
+
+          <span
+            class="colour-dot cyan-dot"
+          ></span>
+
+          <span class="mode-name">
+            CYAN FILTER
+          </span>
+
+        </div>
+
+
+        <span class="mode-description">
+
+          The cyan information is
+          filtered, revealing the
+          red Eiffel Tower.
+
+        </span>
+
+      </button>
+
+
+      <!-- =========================
+           RED FILTER BUTTON
+      ========================== -->
+
+      <button
+        class="mode-button"
+        data-mode="red"
+      >
+
+        <div class="button-top">
+
+          <span
+            class="colour-dot red-dot"
+          ></span>
+
+          <span class="mode-name">
+            RED FILTER
+          </span>
+
+        </div>
+
+
+        <span class="mode-description">
+
+          The red information is
+          filtered, revealing the
+          cyan rocket.
+
+        </span>
+
+      </button>
+
+
+      <!-- =========================
+           EXPLANATION AREA
+      ========================== -->
+
+      <div class="explanation">
+
+
+        <div class="explanation-label">
+          CURRENT OBSERVATION
+        </div>
+
+
+        <p id="explanationText">
+
+          Both images occupy the same
+          visual space, creating a
+          double exposure in which two
+          different structures compete
+          for attention.
+
+        </p>
+
+
+      </div>
+
+
+    </aside>
+
+
+  </div>
+
 
 
   <!-- =========================
-       CONTROL PANEL
+       JAVASCRIPT
   ========================== -->
 
-  <aside class="controls">
-
-    <h2>VIEWING FILTER</h2>
+  <script>
 
 
-    <!-- FULL IMAGE -->
+    /* Find the main image frame */
 
-    <button class="mode-button active" data-mode="combined">
-
-      <div class="button-top">
-        <span class="colour-dot combined-dot"></span>
-        <span class="mode-name">COMBINED</span>
-      </div>
-
-      <span class="mode-description">
-        View both visual layers simultaneously.
-      </span>
-
-    </button>
+    const frame =
+      document.getElementById("artFrame");
 
 
-    <!-- CYAN FILTER -->
+    /* Find all filter buttons */
 
-    <button class="mode-button" data-mode="cyan">
-
-      <div class="button-top">
-        <span class="colour-dot cyan-dot"></span>
-        <span class="mode-name">CYAN FILTER</span>
-      </div>
-
-      <span class="mode-description">
-        The cyan information is filtered, revealing the red Eiffel Tower.
-      </span>
-
-    </button>
+    const buttons =
+      document.querySelectorAll(".mode-button");
 
 
-    <!-- RED FILTER -->
+    /* Find explanation text */
 
-    <button class="mode-button" data-mode="red">
-
-      <div class="button-top">
-        <span class="colour-dot red-dot"></span>
-        <span class="mode-name">RED FILTER</span>
-      </div>
-
-      <span class="mode-description">
-        The red information is filtered, revealing the cyan rocket.
-      </span>
-
-    </button>
+    const explanation =
+      document.getElementById("explanationText");
 
 
-    <div class="explanation">
+    /* Find status label */
 
-      <div class="explanation-label">
-        CURRENT OBSERVATION
-      </div>
-
-      <p id="explanationText">
-        Both images occupy the same visual space, creating a double
-        exposure in which two different structures compete for attention.
-      </p>
-
-    </div>
-
-  </aside>
-
-</div>
+    const status =
+      document.getElementById("status");
 
 
-<script>
 
-  const frame = document.getElementById("artFrame");
-  const buttons = document.querySelectorAll(".mode-button");
-  const explanation = document.getElementById("explanationText");
-  const status = document.getElementById("status");
+    /* =========================
+       TEXT FOR EACH MODE
+    ========================== */
 
-
-  const content = {
-
-    combined: {
-
-      explanation:
-        "Both images occupy the same visual space, creating a double exposure in which two different structures compete for attention.",
-
-      status:
-        "COMBINED IMAGE — BOTH COLOUR CHANNELS ACTIVE"
-
-    },
+    const content = {
 
 
-    cyan: {
+      combined: {
 
-      explanation:
-        "The cyan filter removes the cyan visual information from perception, allowing the red Eiffel Tower image to become visible.",
+        explanation:
 
-      status:
-        "CYAN FILTER — RED EIFFEL TOWER REVEALED"
+          "Both images occupy the same visual space, creating a double exposure in which two different structures compete for attention.",
 
-    },
+        status:
 
+          "COMBINED IMAGE — BOTH COLOUR CHANNELS ACTIVE"
 
-    red: {
-
-      explanation:
-        "The red filter removes the red visual information from perception, allowing the cyan rocket image to become visible.",
-
-      status:
-        "RED FILTER — CYAN ROCKET REVEALED"
-
-    }
-
-  };
+      },
 
 
-  buttons.forEach(button => {
+      cyan: {
 
-    button.addEventListener("click", () => {
+        explanation:
 
-      const mode = button.dataset.mode;
+          "The cyan filter removes the cyan visual information from perception, allowing the red Eiffel Tower image to become visible.",
+
+        status:
+
+          "CYAN FILTER — RED EIFFEL TOWER REVEALED"
+
+      },
 
 
-      /* Remove all previous modes */
+      red: {
 
-      frame.classList.remove(
-        "mode-combined",
-        "mode-cyan",
-        "mode-red"
+        explanation:
+
+          "The red filter removes the red visual information from perception, allowing the cyan rocket image to become visible.",
+
+        status:
+
+          "RED FILTER — CYAN ROCKET REVEALED"
+
+      }
+
+    };
+
+
+
+    /* =========================
+       BUTTON INTERACTION
+    ========================== */
+
+    buttons.forEach(button => {
+
+
+      button.addEventListener(
+        "click",
+        () => {
+
+
+          /* Get selected mode */
+
+          const mode =
+            button.dataset.mode;
+
+
+
+          /* Remove all previous modes */
+
+          frame.classList.remove(
+            "mode-combined",
+            "mode-cyan",
+            "mode-red"
+          );
+
+
+
+          /* Add selected mode */
+
+          frame.classList.add(
+            "mode-" + mode
+          );
+
+
+
+          /* Remove active state
+             from every button */
+
+          buttons.forEach(btn => {
+
+            btn.classList.remove(
+              "active"
+            );
+
+          });
+
+
+
+          /* Highlight selected button */
+
+          button.classList.add(
+            "active"
+          );
+
+
+
+          /* Fade text out */
+
+          explanation.style.opacity = 0;
+
+
+
+          /* Update text after fade */
+
+          setTimeout(() => {
+
+
+            explanation.textContent =
+              content[mode].explanation;
+
+
+            status.textContent =
+              content[mode].status;
+
+
+            /* Fade text back in */
+
+            explanation.style.opacity = 1;
+
+
+          }, 180);
+
+
+        }
       );
 
 
-      /* Add selected mode */
-
-      frame.classList.add("mode-" + mode);
-
-
-      /* Update active button */
-
-      buttons.forEach(btn => {
-        btn.classList.remove("active");
-      });
-
-      button.classList.add("active");
-
-
-      /* Fade explanation text */
-
-      explanation.style.opacity = 0;
-
-
-      setTimeout(() => {
-
-        explanation.textContent =
-          content[mode].explanation;
-
-        status.textContent =
-          content[mode].status;
-
-        explanation.style.opacity = 1;
-
-      }, 180);
-
     });
 
-  });
 
-</script>
+  </script>
+
 
 </body>
+
 </html>
